@@ -1,0 +1,44 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.26124.0
+MinimumVisualStudioVersion = 15.0.26124.0
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{998A2FA0-750D-4EFE-B216-6B3E2FE81D82}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ANYWAYS.VectorTiles.CycleNetworks", "src\ANYWAYS.VectorTiles.CycleNetworks\ANYWAYS.VectorTiles.CycleNetworks.csproj", "{3A595893-E2B1-45F1-8479-0A282CDCA203}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "root", "root", "{21EBC27C-D75D-4037-9C5B-99BD7CD5E2B3}"
+ProjectSection(SolutionItems) = preProject
+	.gitignore = .gitignore
+EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3A595893-E2B1-45F1-8479-0A282CDCA203}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3A595893-E2B1-45F1-8479-0A282CDCA203}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3A595893-E2B1-45F1-8479-0A282CDCA203}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{3A595893-E2B1-45F1-8479-0A282CDCA203}.Debug|x64.Build.0 = Debug|Any CPU
+		{3A595893-E2B1-45F1-8479-0A282CDCA203}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{3A595893-E2B1-45F1-8479-0A282CDCA203}.Debug|x86.Build.0 = Debug|Any CPU
+		{3A595893-E2B1-45F1-8479-0A282CDCA203}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3A595893-E2B1-45F1-8479-0A282CDCA203}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3A595893-E2B1-45F1-8479-0A282CDCA203}.Release|x64.ActiveCfg = Release|Any CPU
+		{3A595893-E2B1-45F1-8479-0A282CDCA203}.Release|x64.Build.0 = Release|Any CPU
+		{3A595893-E2B1-45F1-8479-0A282CDCA203}.Release|x86.ActiveCfg = Release|Any CPU
+		{3A595893-E2B1-45F1-8479-0A282CDCA203}.Release|x86.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{3A595893-E2B1-45F1-8479-0A282CDCA203} = {998A2FA0-750D-4EFE-B216-6B3E2FE81D82}
+	EndGlobalSection
+EndGlobal
