@@ -1,4 +1,4 @@
-FROM microsoft/dotnet:3.1-sdk
+FROM mcr.microsoft.com/dotnet/core/sdk:3.1
 
 # File Author / Maintainer
 MAINTAINER ANYWAYS BVBA
@@ -9,7 +9,7 @@ RUN mkdir /var/app/source
 RUN mkdir /var/app/target
 RUN mkdir /var/app/logs
 COPY ./bin/release/netcoreapp3.1/publish /var/app
-COPY config.Docker.json /var/app/config.json
+# COPY config.Docker.json /var/app/config.json
 
 # install cron.
 RUN apt-get update
