@@ -1,0 +1,35 @@
+{
+  "tiles": [
+    "https://routing.anyways.eu/vector-tiles/cyclenetworks-test/{z}/{x}/{y}.mvt"
+  ],
+  "minzoom": 6,
+  "maxzoom": 14,
+  "bounds": [
+    2.52685546875,
+    49.553726196289062,
+    6.416015625,
+    51.536087036132812
+  ],
+  "name": "cyclenetworks",
+  "description": "Contains cyclenetworks.",
+  "attribution": "",
+  "format": "pbf",
+  "id": "cyclenetworks",
+  "basename": "cyclenetworks",
+  "vector_layers": [
+    {
+      "maxzoom": 14,
+      "minzoom": 6,
+      "id": "cyclenetwork",
+      "description": "The edges in the network"
+    },
+    {
+      "maxzoom": 14,
+      "minzoom": 6,
+      "id": "cyclenodes",
+      "description": "The cycling nodes"
+    }
+  ],
+  "version": "1.0",
+  "tilejson": "2.0.0"
+}

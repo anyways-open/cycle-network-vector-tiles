@@ -1,4 +1,7 @@
+using GeoAPI.Geometries;
 using NetTopologySuite.Features;
+using NetTopologySuite.Geometries;
+using OsmSharp;
 using OsmSharp.Complete;
 using OsmSharp.Geo;
 
@@ -27,6 +30,26 @@ namespace ANYWAYS.VectorTiles.CycleNetworks
                 features.Add(new Feature(lineString, attributes));
             }
             
+            return features;
+        }
+
+        /// <summary>
+        /// Converts a single node that represents relevant network information to one or more features.
+        /// </summary>
+        /// <param name="node">A node.</param>
+        /// <returns>A feature collection representing the node info.</returns>
+        public static FeatureCollection ToFeatureCollection(this Node node)
+        {
+            var features = new FeatureCollection();
+            if (node.Tags == null) return features;
+            
+            if (!node.Latitude.HasValue || !node.Longitude.HasValue) return features;
+            
+            var attributes = node.Tags.ToAttributeTable();
+            if (attributes.Count == 0) return features;
+            
+            features.Add(new Feature(new Point(new Coordinate(node.Longitude.Value, node.Latitude.Value)), attributes));
+
             return features;
         }
     }
