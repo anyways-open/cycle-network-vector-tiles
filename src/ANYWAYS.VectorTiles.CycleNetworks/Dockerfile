@@ -8,14 +8,15 @@ RUN mkdir /var/app
 RUN mkdir /var/app/source
 RUN mkdir /var/app/target
 RUN mkdir /var/app/logs
-COPY ./bin/release/netcoreapp3.1/publish /var/app
-# COPY config.Docker.json /var/app/config.json
 
 # install cron.
 RUN apt-get update
 RUN apt-get install -y cron
 ADD docker-crontab /
 RUN crontab /docker-crontab
+
+COPY ./bin/release/netcoreapp3.1/publish /var/app
+# COPY config.Docker.json /var/app/config.json
 
 # couple data folder data volume.
 VOLUME ["/var/app/source"]
