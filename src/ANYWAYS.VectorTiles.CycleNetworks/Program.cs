@@ -33,7 +33,11 @@ namespace ANYWAYS.VectorTiles.CycleNetworks
             
             var logFile = Path.Combine("logs", "log-{Date}.txt");
             Log.Logger = new LoggerConfiguration()
+#if DEBUG
                 .MinimumLevel.Debug()
+#else
+                .MinimumLevel.Information()
+#endif
                 .Enrich.FromLogContext()
                 .WriteTo.RollingFile(new JsonFormatter(), logFile)
                 .WriteTo.LiterateConsole()
@@ -43,7 +47,7 @@ namespace ANYWAYS.VectorTiles.CycleNetworks
             // TODO: improve this by logging to the correct levels.
             OsmSharp.Logging.Logger.LogAction = (o, level, message, parameters) =>
             {
-                Log.Information($"[{o}] {level} - {message}");
+                Log.Verbose($"[{o}] {level} - {message}");
             };
             
             var pbfSource = new OsmSharp.Streams.PBFOsmStreamSource(File.OpenRead(inputFile));
@@ -198,6 +202,8 @@ namespace ANYWAYS.VectorTiles.CycleNetworks
             var mvtFile = Path.Combine(outputFolder, "mvt.json");
             if (File.Exists(mvtFile)) File.Delete(mvtFile);
             File.Copy("vectortile.spec.json", mvtFile);
+            
+            Log.Information($"Tiles written.");
         }
     }
 }
