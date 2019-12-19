@@ -20,4 +20,4 @@
 # For more information see the manual pages of crontab(5) and cron(8)
 #
 # m h  dom mon dow   command
-0 0 * * * cd /var/app/ && dotnet ANYWAYS.VectorTiles.CycleNetworks.dll /var/app/source/data.osm.pbf /var/app/target/
+0 2 * * * cd /var/app/ && dotnet ANYWAYS.VectorTiles.CycleNetworks.dll /var/app/source/data.osm.pbf /var/app/target/

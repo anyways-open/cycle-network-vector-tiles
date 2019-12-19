@@ -92,7 +92,6 @@ namespace ANYWAYS.VectorTiles.CycleNetworks
                     current.Tags.Contains("route", "bicycle"))
                 {
                     // this is an actual route.
-                    
                 }
                 else
                 { // nothing found that can be used.
@@ -163,6 +162,14 @@ namespace ANYWAYS.VectorTiles.CycleNetworks
                 }
                 if (osmComplete is CompleteRelation relation)
                 {
+                    if (osmComplete.Tags.TryGetValue("ref", out var refValue))
+                    {
+                        if (!string.IsNullOrWhiteSpace(refValue))
+                        {
+                            osmComplete.Tags.AddOrReplace("ref_length", refValue.Length.ToString());
+                        }
+                    }
+                    
                     var relationFeatures = relation.ToFeatureCollection();
                     foreach (var feature in relationFeatures.Features)
                     {
