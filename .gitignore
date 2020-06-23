@@ -48,3 +48,6 @@ packages/*
 **/*.mvt
 **/mvt.json
 *.geojson
+*.osm.pbf
+*.md5
+*.lock
