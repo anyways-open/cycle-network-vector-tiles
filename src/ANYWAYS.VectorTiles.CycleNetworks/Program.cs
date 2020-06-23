@@ -68,7 +68,22 @@ namespace ANYWAYS.VectorTiles.CycleNetworks
 
             try
             {
-                LockHelper.WriteLock(lockFile.FullName);
+                LockHelper.WriteLock(lockFile.FullName);                
+                try
+                {
+                    if (hashFileInfo.Exists && 
+                        HashHelper.CheckMatch(planetFile, hashFileInfo.FullName))
+                    {
+                        // hash files match, don't update.
+                        Log.Debug($"Update of {planetFile} skipped, hash files match...");
+                        return;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Fatal(ex, $"Fatal error during hash checking.");
+                    return;
+                }
                 
                 var inputFile = planetFile;
                 var outputFolder = target;
@@ -237,6 +252,7 @@ namespace ANYWAYS.VectorTiles.CycleNetworks
                 File.Copy("vectortile.spec.json", mvtFile);
 
                 Log.Information($"Tiles written.");
+                HashHelper.WriteHash(planetFile, hashFileInfo.FullName);
             }
             catch (Exception e)
             {
