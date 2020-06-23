@@ -256,7 +256,7 @@ namespace ANYWAYS.VectorTiles.CycleNetworks
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                Log.Fatal(e, $"Unhandled exception.");
                 throw;
             }
             finally
