@@ -58,14 +58,6 @@ namespace ANYWAYS.VectorTiles.CycleNetworks
                 return;
             }
 
-            /*
-             * 0) Check if a newer version of the data is available using the md5 on disk and compare it to config["webHash"]
-             * 1) Download* the data file from a remote source, as configured by 'webSource'
-             *     The data will be saved as 'config["source"]'
-             * 2) Check that the download is correct by verifying the checksum
-             * 3) Update the routerdb with the file on disk
-             */
-
             await Download.Get(webSource, planetFile);
 
             if (!File.Exists(planetFile))
@@ -212,11 +204,11 @@ namespace ANYWAYS.VectorTiles.CycleNetworks
                     }
                 }
 #if DEBUG
-            using var outputStream = File.Open("debug.geojson", FileMode.Create);
-            using var streamWriter = new StreamWriter(outputStream);
-            
-            var serializer = GeoJsonSerializer.Create();
-            serializer.Serialize(streamWriter, features);
+                await using var outputStream = File.Open("debug.geojson", FileMode.Create);
+                await using var streamWriter = new StreamWriter(outputStream);
+                
+                var serializer = GeoJsonSerializer.Create();
+                serializer.Serialize(streamWriter, features);
 #endif
 
                 // build the vector tile tree.
