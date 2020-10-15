@@ -1,9 +1,7 @@
-using GeoAPI.Geometries;
 using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
 using OsmSharp;
 using OsmSharp.Complete;
-using OsmSharp.Geo;
 
 namespace ANYWAYS.VectorTiles.CycleNetworks
 {
@@ -19,7 +17,7 @@ namespace ANYWAYS.VectorTiles.CycleNetworks
             var features = new FeatureCollection();
             if (routeRelation.Members == null) return features;
             
-            var attributes = routeRelation.Tags.ToAttributeTable();
+            var attributes = routeRelation.Tags.ToAttributesTable();
             foreach (var member in routeRelation.Members)
             {
                 if (!(member.Member is CompleteWay way)) continue;
@@ -45,7 +43,7 @@ namespace ANYWAYS.VectorTiles.CycleNetworks
             
             if (!node.Latitude.HasValue || !node.Longitude.HasValue) return features;
             
-            var attributes = node.Tags.ToAttributeTable();
+            var attributes = node.Tags.ToAttributesTable();
             if (attributes.Count == 0) return features;
             
             features.Add(new Feature(new Point(new Coordinate(node.Longitude.Value, node.Latitude.Value)), attributes));

@@ -1,7 +1,8 @@
 using System;
-using GeoAPI.Geometries;
+using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
 using OsmSharp.Complete;
+using OsmSharp.Tags;
 
 namespace ANYWAYS.VectorTiles.CycleNetworks
 {
@@ -32,6 +33,17 @@ namespace ANYWAYS.VectorTiles.CycleNetworks
             }
             
             return new LineString(coordinates);
+        }
+
+        public static AttributesTable ToAttributesTable(this TagsCollectionBase tags)
+        {
+            var table = new AttributesTable();
+            foreach (var t in tags)
+            {
+                table[t.Key] = t.Value;
+            }
+
+            return table;
         }
     }
 }
