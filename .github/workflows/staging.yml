@@ -29,3 +29,9 @@ jobs:
       working-directory: ./src/ANYWAYS.VectorTiles.CycleNetworks/
     - name: Login to Docker Hub
       run: echo ${{ secrets.DOCKER_HUB_TOKEN }} | docker login -u anywaysopen --password-stdin
+    - name: Publish the image.
+      run: docker push anywaysopen/cycle-network-vector-tiles:staging
+      working-directory: ./src/ANYWAYS.VectorTiles.CycleNetworks/
+    - name: Publish the image versioned.
+      run: docker push anywaysopen/cycle-network-vector-tiles:staging-0.$GITHUB_RUN_NUMBER
+      working-directory: ./src/ANYWAYS.VectorTiles.CycleNetworks/
