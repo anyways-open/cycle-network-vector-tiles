@@ -1,0 +1,31 @@
+name: .NET Core
+
+on:
+  push:
+    branches: [ develop ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.1.301
+    - name: Install dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build --configuration Release --no-restore
+    - name: Test
+      run: dotnet test --no-restore --verbosity normal
+    - name: Publish project
+      run: dotnet publish -c release
+      working-directory: ./src/ANYWAYS.VectorTiles.CycleNetworks/
+    - name: Build the Docker image
+      run: docker build . --file Dockerfile --tag anywaysopen/cycle-network-vector-tiles:staging --tag anywaysopen/cycle-network-vector-tiles:staging-0.$GITHUB_RUN_NUMBER
+      working-directory: ./src/ANYWAYS.VectorTiles.CycleNetworks/
+    - name: Login to Docker Hub
+      run: echo ${{ secrets.DOCKER_HUB_TOKEN }} | docker login -u anywaysopen --password-stdin
