@@ -77,6 +77,7 @@ namespace ANYWAYS.VectorTiles.CycleNetworks
                 var foundRouteRelations = 0;
                 while (true)
                 {
+                    if (stoppingToken.IsCancellationRequested) break;
                     if (!source.MoveNext(true, true, false)) break;
                     if (!(source.Current() is Relation current)) continue;
                     if (current.Members == null) continue;
@@ -126,12 +127,18 @@ namespace ANYWAYS.VectorTiles.CycleNetworks
                         members.Add(memberKey);
                     }
                 }
+                if (stoppingToken.IsCancellationRequested)
+                {
+                    this.CancelledWhenProcessing();
+                    return;
+                }
 
                 _logger.LogInformation($"Found {foundRouteRelations} with {members.Count} members.");
 
                 // filter stream, keeping only the relevant objects.
                 var filteredSource = source.Where(x =>
                 {
+                    if (stoppingToken.IsCancellationRequested) return false;
                     if (!x.Id.HasValue) return false;
 
                     var key = new OsmGeoKey
@@ -154,11 +161,17 @@ namespace ANYWAYS.VectorTiles.CycleNetworks
 
                     return false;
                 });
+                if (stoppingToken.IsCancellationRequested)
+                {
+                    this.CancelledWhenProcessing();
+                    return;
+                }
 
                 // convert this to complete objects.
                 var features = new FeatureCollection();
                 foreach (var osmComplete in filteredSource.ToComplete())
                 {
+                    if (stoppingToken.IsCancellationRequested) break;
                     if (osmComplete is Node node)
                     {
                         if (!node.Id.HasValue) continue;
@@ -195,6 +208,11 @@ namespace ANYWAYS.VectorTiles.CycleNetworks
                         }
                     }
                 }
+                if (stoppingToken.IsCancellationRequested)
+                {
+                    this.CancelledWhenProcessing();
+                    return;
+                }
 #if DEBUG
                 await using var outputStream = File.Open("debug.geojson", FileMode.Create);
                 await using var streamWriter = new StreamWriter(outputStream);
@@ -222,8 +240,21 @@ namespace ANYWAYS.VectorTiles.CycleNetworks
                 }
 
                 // write the tiles to disk as mvt (but stop when cancelled is requested).
-                tree.Select(id => tree[id]).Where(x => !stoppingToken.IsCancellationRequested)
-                    .Write(_configuration.TargetPath);
+                tree.Select(id => tree[id]).Where(x =>
+                {
+                    if (stoppingToken.IsCancellationRequested)
+                    {
+                        this.CancelledWhenProcessing();
+                        return false;
+                    }
+
+                    return true;
+                }).Write(_configuration.TargetPath);
+                if (stoppingToken.IsCancellationRequested)
+                {
+                    this.CancelledWhenProcessing();
+                    return;
+                }
 
                 // write the mvt.
                 var mvtFile = Path.Combine(_configuration.TargetPath, "mvt.json");
@@ -238,11 +269,13 @@ namespace ANYWAYS.VectorTiles.CycleNetworks
             }
         }
 
-        private void Cancel()
+        private void CancelledWhenProcessing()
         {
             // delete md5 file, causing a refresh.
             var localMd5 = _configuration.DataPath + Local + ".md5";
             if (File.Exists(localMd5)) File.Delete(localMd5);
+            
+            _logger.LogWarning($"Processing was cancelled!");
         }
     }
 }
