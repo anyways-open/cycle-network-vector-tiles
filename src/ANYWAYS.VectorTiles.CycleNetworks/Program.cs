@@ -89,7 +89,7 @@ namespace ANYWAYS.VectorTiles.CycleNetworks
                                 });
                             
                             // add downloader.
-                            services.AddSingleton<Downloader>();
+                            services.AddSingleton<ANYWAYS.Tools.Downloader>();
                             
                             // add the service.
                             services.AddHostedService<Worker>();
