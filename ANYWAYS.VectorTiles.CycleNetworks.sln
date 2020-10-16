@@ -10,6 +10,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "root", "root", "{21EBC27C-D75D-4037-9C5B-99BD7CD5E2B3}"
 ProjectSection(SolutionItems) = preProject
 	.gitignore = .gitignore
+	NuGet.Config.actions = NuGet.Config.actions
 EndProjectSection
 EndProject
 Global
