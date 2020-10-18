@@ -56,6 +56,8 @@ namespace ANYWAYS.VectorTiles.CycleNetworks
                 return;
             }
 
+            _logger.LogInformation($"Downloaded new file, refreshing tiles.");
+
             if (!File.Exists(local))
             {
                 _logger.LogCritical($"Local file not found: {local}.");
