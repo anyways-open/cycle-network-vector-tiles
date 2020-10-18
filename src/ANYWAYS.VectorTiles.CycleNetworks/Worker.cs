@@ -265,15 +265,23 @@ namespace ANYWAYS.VectorTiles.CycleNetworks
             }
             catch (Exception e)
             {
+                // we cannot be sure things went well, best to try again.
+                this.ForceRetry();
+                
                 _logger.LogCritical(e, $"Unhandled exception when writing tiles.");
             }
         }
 
-        private void CancelledWhenProcessing()
+        private void ForceRetry()
         {
-            // delete md5 file, causing a refresh.
+            // delete md5 file, causing a retry.
             var localMd5 = _configuration.DataPath + Local + ".md5";
             if (File.Exists(localMd5)) File.Delete(localMd5);
+        }
+
+        private void CancelledWhenProcessing()
+        {
+            this.ForceRetry();
             
             _logger.LogWarning($"Processing was cancelled!");
         }
