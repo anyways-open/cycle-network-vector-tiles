@@ -40,7 +40,14 @@ namespace ANYWAYS.VectorTiles.CycleNetworks
             var table = new AttributesTable();
             foreach (var t in tags)
             {
-                table[t.Key] = t.Value;
+                if (table.Exists(t.Key))
+                {
+                    table[t.Key] = t.Value;
+                }
+                else
+                {
+                    table.Add(t.Key, t.Value);
+                }
             }
 
             return table;
