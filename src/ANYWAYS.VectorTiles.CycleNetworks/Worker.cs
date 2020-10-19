@@ -36,10 +36,38 @@ namespace ANYWAYS.VectorTiles.CycleNetworks
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            // hookup OsmSharp logging.
+            OsmSharp.Logging.Logger.LogAction = (origin, level, message, parameters) =>
+            {
+                var formattedMessage = $"{origin} - {message}";
+                switch (level)
+                {
+                    case "critical":
+                        _logger.LogCritical(formattedMessage);
+                        break;
+                    case "error":
+                        _logger.LogError(formattedMessage);
+                        break;
+                    case "warning":
+                        _logger.LogWarning(formattedMessage);
+                        break;
+                    case "verbose":
+                        _logger.LogTrace(formattedMessage);
+                        break;
+                    case "information":
+                        _logger.LogInformation(formattedMessage);
+                        break;
+                    default:
+                        _logger.LogDebug(formattedMessage);
+                        break;
+                }
+            };
+            
+            _logger.LogInformation("Worker running at: {time}, triggered every {refreshTime}", 
+                DateTimeOffset.Now, _configuration.RefreshTime);
+            
             while (!stoppingToken.IsCancellationRequested)
             {
-                _logger.LogInformation("Worker running at: {time}, triggered every {refreshTime}", 
-                    DateTimeOffset.Now, _configuration.RefreshTime);
 
                 await this.RunAsync(stoppingToken);
                 
@@ -51,7 +79,7 @@ namespace ANYWAYS.VectorTiles.CycleNetworks
         {
             // download file (if md5 files don't match).
             var local = Path.Combine(_configuration.DataPath, Local);
-            if (!await _downloader.Get(_configuration.SourceUrl, local))
+            if (!await _downloader.Get(_configuration.SourceUrl, local, cancellationToken: stoppingToken))
             {
                 return;
             }
@@ -138,31 +166,43 @@ namespace ANYWAYS.VectorTiles.CycleNetworks
                 _logger.LogInformation($"Found {foundRouteRelations} with {members.Count} members.");
 
                 // filter stream, keeping only the relevant objects.
-                var filteredSource = source.Where(x =>
+                IEnumerable<OsmGeo> FilterSource()
                 {
-                    if (stoppingToken.IsCancellationRequested) return false;
-                    if (!x.Id.HasValue) return false;
-
-                    var key = new OsmGeoKey
+                    foreach (var x in source)
                     {
-                        Id = x.Id.Value,
-                        Type = x.Type
-                    };
+                        if (stoppingToken.IsCancellationRequested) yield break;
+                        if (!x.Id.HasValue) yield break;
 
-                    switch (x.Type)
-                    {
-                        case OsmGeoType.Node:
-                            return true;
-                        case OsmGeoType.Way:
-                            return members.Contains(key);
-                        case OsmGeoType.Relation:
-                            return (x.Tags != null &&
-                                    x.Tags.Contains("type", "route") &&
-                                    x.Tags.Contains("route", "bicycle"));
+                        var key = new OsmGeoKey
+                        {
+                            Id = x.Id.Value,
+                            Type = x.Type
+                        };
+
+                        switch (x.Type)
+                        {
+                            case OsmGeoType.Node:
+                                yield return x;
+                                break;
+                            case OsmGeoType.Way:
+                                if (members.Contains(key))
+                                {
+                                    yield return x;
+                                }
+                                break;
+                            case OsmGeoType.Relation:
+                                if ((x.Tags != null &&
+                                     x.Tags.Contains("type", "route") &&
+                                     x.Tags.Contains("route", "bicycle")))
+                                {
+                                    yield return x;
+                                }
+                                break;
+                        }
                     }
+                }
 
-                    return false;
-                });
+                var filteredSource = FilterSource();
                 if (stoppingToken.IsCancellationRequested)
                 {
                     this.CancelledWhenProcessing();
@@ -242,16 +282,22 @@ namespace ANYWAYS.VectorTiles.CycleNetworks
                 }
 
                 // write the tiles to disk as mvt (but stop when cancelled is requested).
-                tree.Select(id => tree[id]).Where(x =>
+                IEnumerable<VectorTile> GetTiles(IEnumerable<ulong> tiles)
                 {
-                    if (stoppingToken.IsCancellationRequested)
+                    foreach (var tileId in tiles)
                     {
-                        this.CancelledWhenProcessing();
-                        return false;
-                    }
+                        if (stoppingToken.IsCancellationRequested)
+                        {
+                            this.CancelledWhenProcessing();
+                            yield break;
+                        }
 
-                    return true;
-                }).Write(_configuration.TargetPath);
+                        var tile = new NetTopologySuite.IO.VectorTiles.Tiles.Tile(tileId);
+                        _logger.LogInformation($"Writing {tile.Zoom}/{tile.X}/{tile.Y}.mvt");
+                        yield return tree[tileId];
+                    }
+                }
+                GetTiles(tree).Write(_configuration.TargetPath);
                 if (stoppingToken.IsCancellationRequested)
                 {
                     this.CancelledWhenProcessing();

@@ -32,33 +32,6 @@ namespace ANYWAYS.VectorTiles.CycleNetworks
                 // build configuration.
                 configuration = configurationBuilder.Build();
 
-                // hookup OsmSharp logging.
-                OsmSharp.Logging.Logger.LogAction = (origin, level, message, parameters) =>
-                {
-                    var formattedMessage = $"{origin} - {message}";
-                    switch (level)
-                    {
-                        case "critical":
-                            Log.Fatal(formattedMessage);
-                            break;
-                        case "error":
-                            Log.Error(formattedMessage);
-                            break;
-                        case "warning":
-                            Log.Warning(formattedMessage);
-                            break;
-                        case "verbose":
-                            Log.Verbose(formattedMessage);
-                            break;
-                        case "information":
-                            Log.Information(formattedMessage);
-                            break;
-                        default:
-                            Log.Debug(formattedMessage);
-                            break;
-                    }
-                };
-
                 // setup logging.
                 Log.Logger = new LoggerConfiguration()
                     .ReadFrom.Configuration(configuration)
