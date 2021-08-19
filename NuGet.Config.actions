@@ -2,13 +2,22 @@
 <configuration>
     <packageSources>
         <add key="nuget.org" value="https://api.nuget.org/v3/index.json" protocolVersion="3" />
-        <add key="ANYWAYS Build Server" value=" https://build.anyways.eu/guestAuth/app/nuget/feed/_Root/default/v3/index.json " />
         <add key="github-anyways-open" value="https://nuget.pkg.github.com/anyways-open/index.json" />
+        <add key="github-itinero" value="https://nuget.pkg.github.com/itinero/index.json" />
+        <add key="github-osmsharp" value="https://nuget.pkg.github.com/osmsharp/index.json" />
     </packageSources>
     <packageSourceCredentials>
         <github-anyways-open>
             <add key="Username" value="%%username%%" />
-             <add key="ClearTextPassword" value="%%token%%" />
+            <add key="ClearTextPassword" value="%%token%%" />
         </github-anyways-open>
+        <github-itinero>
+            <add key="Username" value="%%username%%" />
+            <add key="ClearTextPassword" value="%%token%%" />
+        </github-itinero>
+        <github-osmsharp>
+            <add key="Username" value="%%username%%" />
+            <add key="ClearTextPassword" value="%%token%%" />
+        </github-osmsharp>
     </packageSourceCredentials>
 </configuration>
