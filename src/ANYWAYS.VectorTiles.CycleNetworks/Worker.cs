@@ -78,7 +78,7 @@ namespace ANYWAYS.VectorTiles.CycleNetworks
         {
             // download file (if md5 files don't match).
             var local = Path.Combine(_configuration.DataPath, Local);
-            if (!await _downloader.Get(_configuration.SourceUrl, local, "temp", cancellationToken: stoppingToken))
+            if (!await _downloader.Get(_configuration.SourceUrl, local, _configuration.TempPath, cancellationToken: stoppingToken))
             {
                 return;
             }

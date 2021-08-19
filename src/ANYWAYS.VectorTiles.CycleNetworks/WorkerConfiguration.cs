@@ -9,5 +9,7 @@ namespace ANYWAYS.VectorTiles.CycleNetworks
         public string TargetPath { get; set; } = null!;
 
         public int RefreshTime { get; set; } = 1000;
+        
+        public string TempPath { get; set; } = null!;
     }
 }

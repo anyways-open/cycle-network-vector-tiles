@@ -57,11 +57,13 @@ namespace ANYWAYS.VectorTiles.CycleNetworks
                             var source = hostingContext.Configuration["source"];
                             var data = hostingContext.Configuration["data"];
                             var target = hostingContext.Configuration["target"];
+                            var temp =  hostingContext.Configuration["temp"];
                             services.AddSingleton(new WorkerConfiguration()
                             {
                                 SourceUrl = source,
                                 DataPath = data,
-                                TargetPath = target
+                                TargetPath = target,
+                                TempPath = temp
                             });
 
                             // add downloader.
