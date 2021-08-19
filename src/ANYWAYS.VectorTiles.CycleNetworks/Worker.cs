@@ -279,6 +279,7 @@ namespace ANYWAYS.VectorTiles.CycleNetworks
                 var serializer = GeoJsonSerializer.Create();
                 serializer.Serialize(streamWriter, features);
 #endif
+                _logger.LogInformation($"Writing tiles...");
 
                 // build the vector tile tree.
                 var tree = new VectorTileTree { { features, ConfigureFeature } };
