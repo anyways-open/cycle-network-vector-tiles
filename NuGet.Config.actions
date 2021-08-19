@@ -5,6 +5,7 @@
         <add key="github-anyways-open" value="https://nuget.pkg.github.com/anyways-open/index.json" />
         <add key="github-itinero" value="https://nuget.pkg.github.com/itinero/index.json" />
         <add key="github-osmsharp" value="https://nuget.pkg.github.com/osmsharp/index.json" />
+        <add key="github-NetTopologySuite" value="https://nuget.pkg.github.com/NetTopologySuite/index.json" />
     </packageSources>
     <packageSourceCredentials>
         <github-anyways-open>
@@ -19,5 +20,9 @@
             <add key="Username" value="%%username%%" />
             <add key="ClearTextPassword" value="%%token%%" />
         </github-osmsharp>
+        <github-NetTopologySuite>
+            <add key="Username" value="%%username%%" />
+            <add key="ClearTextPassword" value="%%token%%" />
+        </github-NetTopologySuite>
     </packageSourceCredentials>
 </configuration>

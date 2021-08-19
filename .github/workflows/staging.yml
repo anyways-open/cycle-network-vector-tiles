@@ -15,7 +15,7 @@ jobs:
       uses: datamonsters/replace-action@v2
       with:
         files: 'NuGet.Config.actions'
-        replacements: '%%username%%=xivk,%%token%%=${{ secrets.PACKAGES_SECRET }},%%username%%=xivk,%%token%%=${{ secrets.PACKAGES_SECRET }},%%username%%=xivk,%%token%%=${{ secrets.PACKAGES_SECRET }}'
+        replacements: '%%username%%=xivk,%%token%%=${{ secrets.PACKAGES_SECRET }},%%username%%=xivk,%%token%%=${{ secrets.PACKAGES_SECRET }},%%username%%=xivk,%%token%%=${{ secrets.PACKAGES_SECRET }},%%username%%=xivk,%%token%%=${{ secrets.PACKAGES_SECRET }}'
     - run: mv NuGet.Config.actions NuGet.Config 
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
