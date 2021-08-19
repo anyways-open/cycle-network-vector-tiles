@@ -19,13 +19,43 @@ namespace ANYWAYS.VectorTiles.CycleNetworks
             var features = new FeatureCollection();
             if (routeRelation.Members == null) return features;
             
-            var attributes = routeRelation.Tags.ToAttributesTable();
             foreach (var member in routeRelation.Members)
             {
                 if (member.Member is not CompleteWay way) continue;
                 if (way.Nodes == null || way.Nodes.Length < 2) continue;
                     
                 var lineString = way.ToLineString();
+                
+                var attributes = new AttributesTable();
+                if (way?.Tags != null)
+                {
+                    foreach (var t in way.Tags)
+                    {
+                        if (attributes.Exists(t.Key))
+                        {
+                            attributes[t.Key] = t.Value;
+                        }
+                        else
+                        {
+                            attributes.Add(t.Key, t.Value);
+                        }
+                    }
+                }
+
+                if (routeRelation?.Tags != null)
+                {
+                    foreach (var t in routeRelation.Tags)
+                    {
+                        if (attributes.Exists(t.Key))
+                        {
+                            attributes[t.Key] = t.Value;
+                        }
+                        else
+                        {
+                            attributes.Add(t.Key, t.Value);
+                        }
+                    }
+                }
                     
                 features.Add(new Feature(lineString, attributes));
             }
