@@ -310,7 +310,7 @@ namespace ANYWAYS.VectorTiles.CycleNetworks
                         }
 
                         var tile = new NetTopologySuite.IO.VectorTiles.Tiles.Tile(tileId);
-                        _logger.LogInformation($"Writing {tile.Zoom}/{tile.X}/{tile.Y}.mvt");
+                        _logger.LogInformation($"Writing {_configuration.TargetPath}{tile.Zoom}/{tile.X}/{tile.Y}.mvt");
                         yield return tree[tileId];
                     }
                 }
