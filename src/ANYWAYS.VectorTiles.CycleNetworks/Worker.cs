@@ -62,15 +62,14 @@ namespace ANYWAYS.VectorTiles.CycleNetworks
                         break;
                 }
             };
-            
-            _logger.LogInformation("Worker running at: {time}, triggered every {refreshTime}", 
+
+            _logger.LogInformation("Worker running at: {time}, triggered every {refreshTime}",
                 DateTimeOffset.Now, _configuration.RefreshTime);
-            
+
             while (!stoppingToken.IsCancellationRequested)
             {
-
                 await this.RunAsync(stoppingToken);
-                
+
                 await Task.Delay(_configuration.RefreshTime, stoppingToken);
             }
         }
@@ -79,7 +78,7 @@ namespace ANYWAYS.VectorTiles.CycleNetworks
         {
             // download file (if md5 files don't match).
             var local = Path.Combine(_configuration.DataPath, Local);
-            if (!await _downloader.Get(_configuration.SourceUrl, local, cancellationToken: stoppingToken))
+            if (!await _downloader.Get(_configuration.SourceUrl, local, "temp", cancellationToken: stoppingToken))
             {
                 return;
             }
@@ -94,6 +93,37 @@ namespace ANYWAYS.VectorTiles.CycleNetworks
 
             try
             {
+                bool IsRelevant(Relation current)
+                {
+                    var networks = new HashSet<string> { "lcn", "rcn", "ncn" };
+                    if (!current.Tags.TryGetValue("type", out var type)) return false;
+
+                    switch (type)
+                    {
+                        case "network":
+                        {
+                            if (current.Tags.TryGetValue("network", out var network) &&
+                                networks.Contains(network))
+                            {
+                                return true;
+                            }
+
+                            break;
+                        }
+                        case "route":
+                        {
+                            if (current.Tags.Contains("route", "bicycle"))
+                            {
+                                return true;
+                            }
+
+                            break;
+                        }
+                    }
+
+                    return false;
+                }
+
                 var localStream = File.OpenRead(local);
                 var pbfSource = new PBFOsmStreamSource(localStream);
                 var source = new OsmSharp.Streams.Filters.OsmStreamFilterProgress();
@@ -102,50 +132,18 @@ namespace ANYWAYS.VectorTiles.CycleNetworks
                 // pass over source stream and:
                 // - determine all members of route relations where are interested in.
                 // - keep master relations relationships.
-                var members = new HashSet<OsmGeoKey>();
-                var masterRelations = new Dictionary<OsmGeoKey, List<Relation>>();
+                var membersInRelations = new Dictionary<OsmGeoKey, List<Relation>>();
                 var foundRouteRelations = 0;
                 while (true)
                 {
                     if (stoppingToken.IsCancellationRequested) break;
                     if (!source.MoveNext(true, true, false)) break;
-                    if (!(source.Current() is Relation current)) continue;
+                    if (source.Current() is not Relation current) continue;
                     if (current.Members == null) continue;
-
                     if (current.Tags == null) continue;
+                    if (!IsRelevant(current)) continue;
 
-                    if (current.Tags.Contains("type", "network") &&
-                        current.Tags.Contains("network", "rcn"))
-                    {
-                        // this is a network master relation.
-                        foreach (var member in current.Members)
-                        {
-                            var memberKey = new OsmGeoKey
-                            {
-                                Id = member.Id,
-                                Type = member.Type
-                            };
-                            if (!masterRelations.TryGetValue(memberKey, out var masters))
-                            {
-                                masters = new List<Relation>(1);
-                                masterRelations[memberKey] = masters;
-                            }
-
-                            masters.Add(current);
-                        }
-                    }
-                    else if (current.Tags.Contains("type", "route") &&
-                             current.Tags.Contains("route", "bicycle"))
-                    {
-                        // this is an actual route.
-                    }
-                    else
-                    {
-                        // nothing found that can be used.
-                        continue;
-                    }
-
-                    // make sure to keep all members.
+                    // this is a network relation.
                     foundRouteRelations++;
                     foreach (var member in current.Members)
                     {
@@ -154,16 +152,23 @@ namespace ANYWAYS.VectorTiles.CycleNetworks
                             Id = member.Id,
                             Type = member.Type
                         };
-                        members.Add(memberKey);
+                        if (!membersInRelations.TryGetValue(memberKey, out var masters))
+                        {
+                            masters = new List<Relation>(1);
+                            membersInRelations[memberKey] = masters;
+                        }
+
+                        masters.Add(current);
                     }
                 }
+
                 if (stoppingToken.IsCancellationRequested)
                 {
                     this.CancelledWhenProcessing();
                     return;
                 }
 
-                _logger.LogInformation($"Found {foundRouteRelations} with {members.Count} members.");
+                _logger.LogInformation($"Found {foundRouteRelations} with {membersInRelations.Count} members.");
 
                 // filter stream, keeping only the relevant objects.
                 IEnumerable<OsmGeo> FilterSource()
@@ -185,18 +190,18 @@ namespace ANYWAYS.VectorTiles.CycleNetworks
                                 yield return x;
                                 break;
                             case OsmGeoType.Way:
-                                if (members.Contains(key))
+                                if (membersInRelations.ContainsKey(key))
                                 {
                                     yield return x;
                                 }
+
                                 break;
                             case OsmGeoType.Relation:
-                                if ((x.Tags != null &&
-                                     x.Tags.Contains("type", "route") &&
-                                     x.Tags.Contains("route", "bicycle")))
+                                if (x is Relation r && IsRelevant(r))
                                 {
                                     yield return x;
                                 }
+
                                 break;
                         }
                     }
@@ -214,57 +219,69 @@ namespace ANYWAYS.VectorTiles.CycleNetworks
                 foreach (var osmComplete in filteredSource.ToComplete())
                 {
                     if (stoppingToken.IsCancellationRequested) break;
-                    if (osmComplete is Node node)
+                    switch (osmComplete)
                     {
-                        if (!node.Id.HasValue) continue;
-                        var key = new OsmGeoKey
+                        case Node { Id: null }:
+                            continue;
+                        case Node node:
                         {
-                            Id = node.Id.Value,
-                            Type = node.Type
-                        };
+                            var key = new OsmGeoKey
+                            {
+                                Id = node.Id.Value,
+                                Type = node.Type
+                            };
 
-                        if (members.Contains(key))
+                            if (membersInRelations.TryGetValue(key, out var masters))
+                            {
+                                foreach (var master in masters)
+                                {
+                                    var nodeFeatures = node.ToFeatureCollection(master.Tags);
+                                    foreach (var feature in nodeFeatures)
+                                    {
+                                        features.Add(feature);
+                                    }
+                                }
+                            }
+
+                            break;
+                        }
+                        case CompleteRelation relation:
                         {
-                            var nodeFeatures = node.ToFeatureCollection();
-                            foreach (var feature in nodeFeatures)
+                            if (osmComplete.Tags.TryGetValue("ref", out var refValue))
+                            {
+                                if (!string.IsNullOrWhiteSpace(refValue))
+                                {
+                                    osmComplete.Tags.AddOrReplace("ref_length", refValue.Length.ToString());
+                                }
+                            }
+
+                            var relationFeatures = relation.ToFeatureCollection();
+                            foreach (var feature in relationFeatures)
                             {
                                 features.Add(feature);
                             }
-                        }
-                    }
 
-                    if (osmComplete is CompleteRelation relation)
-                    {
-                        if (osmComplete.Tags.TryGetValue("ref", out var refValue))
-                        {
-                            if (!string.IsNullOrWhiteSpace(refValue))
-                            {
-                                osmComplete.Tags.AddOrReplace("ref_length", refValue.Length.ToString());
-                            }
-                        }
-
-                        var relationFeatures = relation.ToFeatureCollection();
-                        foreach (var feature in relationFeatures)
-                        {
-                            features.Add(feature);
+                            break;
                         }
                     }
                 }
+
                 if (stoppingToken.IsCancellationRequested)
                 {
                     this.CancelledWhenProcessing();
                     return;
                 }
+
 #if DEBUG
                 await using var outputStream = File.Open("debug.geojson", FileMode.Create);
                 await using var streamWriter = new StreamWriter(outputStream);
-                
+
                 var serializer = GeoJsonSerializer.Create();
                 serializer.Serialize(streamWriter, features);
 #endif
 
                 // build the vector tile tree.
-                var tree = new VectorTileTree {{features, ConfigureFeature}};
+                var tree = new VectorTileTree { { features, ConfigureFeature } };
 
                 IEnumerable<(IFeature feature, int zoom, string layerName)> ConfigureFeature(IFeature feature)
                 {
@@ -297,6 +314,7 @@ namespace ANYWAYS.VectorTiles.CycleNetworks
                         yield return tree[tileId];
                     }
                 }
+
                 GetTiles(tree).Write(_configuration.TargetPath);
                 if (stoppingToken.IsCancellationRequested)
                 {
@@ -315,7 +333,7 @@ namespace ANYWAYS.VectorTiles.CycleNetworks
             {
                 // we cannot be sure things went well, best to try again.
                 this.ForceRetry();
-                
+
                 _logger.LogCritical(e, $"Unhandled exception when writing tiles.");
             }
         }
@@ -330,7 +348,7 @@ namespace ANYWAYS.VectorTiles.CycleNetworks
         private void CancelledWhenProcessing()
         {
             this.ForceRetry();
-            
+
             _logger.LogWarning($"Processing was cancelled!");
         }
     }

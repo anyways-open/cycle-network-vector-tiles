@@ -1,10 +1,13 @@
 ﻿using System;
 using System.IO;
 using System.Threading.Tasks;
+using ANYWAYS.Tools;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Serilog;
+using Serilog.Formatting.Json;
 
 namespace ANYWAYS.VectorTiles.CycleNetworks
 {
@@ -12,59 +15,59 @@ namespace ANYWAYS.VectorTiles.CycleNetworks
     {
         static async Task Main(string[] args)
         {
+            // hardcode configuration before the configured logging can be bootstrapped.
+            var logFile = Path.Combine("logs", "boot-log-.txt");
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Verbose()
+                .WriteTo.File(new JsonFormatter(), logFile, rollingInterval: RollingInterval.Day)
+                .WriteTo.Console()
+                .CreateLogger();
+            
             try
             {
                 var configurationBuilder = new ConfigurationBuilder()
                     .AddJsonFile("appsettings.json", true, true);
-                    
-                // get deploy time settings if present.
-                var configuration = configurationBuilder.Build();
-                var deployTimeSettings = configuration["deploy-time-settings"] ?? "/var/app/config/appsettings.json";
-                configurationBuilder = configurationBuilder
-                    .AddJsonFile(deployTimeSettings, true, true);
 
-                // get environment variable prefix.
-                configuration = configurationBuilder.Build();
-                var envVarPrefix = configuration["env-var-prefix"] ?? "CONF_";
-                configurationBuilder = configurationBuilder
-                    .AddEnvironmentVariables((c) => { c.Prefix = envVarPrefix; });
-                
-                // build configuration.
-                configuration = configurationBuilder.Build();
-
-                // setup logging.
-                Log.Logger = new LoggerConfiguration()
-                    .ReadFrom.Configuration(configuration)
-                    .CreateLogger();
+                // get deploy time setting.
+                var (deployTimeSettings, envVarPrefix) = configurationBuilder.GetDeployTimeSettings();
 
                 try
                 {
-                    var source = configuration["source"];
-                    var data = configuration["data"];
-                    var target = configuration["target"];
-
-                    // setup host and configure DI.
+                    
                     var host = Host.CreateDefaultBuilder(args)
-                        .ConfigureServices((hostContext, services) =>
+                        .ConfigureAppConfiguration((hostingContext, config) =>
                         {
-                            // add logging.
+                            Log.Information("Env: {env}", hostingContext.HostingEnvironment.EnvironmentName);
+                            
+                            config.AddJsonFile(deployTimeSettings, true, true);
+                            config.AddEnvironmentVariables((c) => { c.Prefix = envVarPrefix; });
+                        })
+                        .ConfigureServices((hostingContext, services) =>
+                        {
+                            Log.Logger = new LoggerConfiguration()
+                                .ReadFrom.Configuration(hostingContext.Configuration)
+                                .CreateLogger();
                             services.AddLogging(b =>
-                                {
-                                    b.AddSerilog();
-                                });
+                            {
+                                b.ClearProviders();
+                                b.AddSerilog();
+                            });
                             
                             // add configuration.
+                            var source = hostingContext.Configuration["source"];
+                            var data = hostingContext.Configuration["data"];
+                            var target = hostingContext.Configuration["target"];
                             services.AddSingleton(new WorkerConfiguration()
-                                {
-                                    SourceUrl = source,
-                                    DataPath = data,
-                                    TargetPath = target
-                                });
-                            
+                            {
+                                SourceUrl = source,
+                                DataPath = data,
+                                TargetPath = target
+                            });
+
                             // add downloader.
-                            services.AddSingleton<ANYWAYS.Tools.Downloader>();
+                            services.AddSingleton<Downloader>();
                             
-                            // add the service.
+                            // add hosted service.
                             services.AddHostedService<Worker>();
                         }).Build();
                     
