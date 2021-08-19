@@ -7,6 +7,7 @@ RUN mkdir /var/app/config
 
 VOLUME ["/var/app/config"]
 VOLUME ["/var/app/data"]
+VOLUME ["/var/app/temp"]
 VOLUME ["/var/app/logs"]
 
 # SET base url
