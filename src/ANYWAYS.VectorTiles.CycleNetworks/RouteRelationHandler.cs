@@ -56,6 +56,26 @@ namespace ANYWAYS.VectorTiles.CycleNetworks
                         }
                     }
                 }
+
+                var key = "id";
+                if (attributes.Exists(key))
+                {
+                    attributes[key] = member.Member.Id.ToInvariantString();
+                }
+                else
+                {
+                    attributes.Add(key, member.Member.Id.ToInvariantString());
+                }
+
+                key = "relation_id";
+                if (attributes.Exists(key))
+                {
+                    attributes[key] = routeRelation.Id.ToInvariantString();
+                }
+                else
+                {
+                    attributes.Add(key, routeRelation.Id.ToInvariantString());
+                }
                     
                 features.Add(new Feature(lineString, attributes));
             }
