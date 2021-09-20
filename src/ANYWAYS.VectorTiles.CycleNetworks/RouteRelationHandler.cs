@@ -60,21 +60,21 @@ namespace ANYWAYS.VectorTiles.CycleNetworks
                 var key = "id";
                 if (attributes.Exists(key))
                 {
-                    attributes[key] = member.Member.Id.ToInvariantString();
+                    attributes[key] = member.Member.Id;
                 }
                 else
                 {
-                    attributes.Add(key, member.Member.Id.ToInvariantString());
+                    attributes.Add(key, member.Member.Id);
                 }
 
                 key = "relation_id";
                 if (attributes.Exists(key))
                 {
-                    attributes[key] = routeRelation.Id.ToInvariantString();
+                    attributes[key] = routeRelation.Id;
                 }
                 else
                 {
-                    attributes.Add(key, routeRelation.Id.ToInvariantString());
+                    attributes.Add(key, routeRelation.Id);
                 }
                     
                 features.Add(new Feature(lineString, attributes));
