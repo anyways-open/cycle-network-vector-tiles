@@ -63,7 +63,7 @@ namespace ANYWAYS.VectorTiles.CycleNetworks
                 }
             };
 
-            _logger.LogInformation("Worker running at: {time}, triggered every {refreshTime}",
+            _logger.LogInformation("Worker running at: {Time}, triggered every {RefreshTime}",
                 DateTimeOffset.Now, _configuration.RefreshTime);
 
             while (!stoppingToken.IsCancellationRequested)
@@ -83,11 +83,11 @@ namespace ANYWAYS.VectorTiles.CycleNetworks
                 return;
             }
 
-            _logger.LogInformation($"Downloaded new file, refreshing tiles.");
+            _logger.LogInformation("Downloaded new file, refreshing tiles");
 
             if (!File.Exists(local))
             {
-                _logger.LogCritical($"Local file not found: {local}.");
+                _logger.LogCritical("Local file not found: {Local}", local);
                 return;
             }
 
@@ -168,7 +168,8 @@ namespace ANYWAYS.VectorTiles.CycleNetworks
                     return;
                 }
 
-                _logger.LogInformation($"Found {foundRouteRelations} with {membersInRelations.Count} members.");
+                _logger.LogInformation("Found {Relation} with {MembersCount} members",
+                    foundRouteRelations, membersInRelations.Count);
 
                 // filter stream, keeping only the relevant objects.
                 IEnumerable<OsmGeo> FilterSource()
@@ -279,7 +280,7 @@ namespace ANYWAYS.VectorTiles.CycleNetworks
                 var serializer = GeoJsonSerializer.Create();
                 serializer.Serialize(streamWriter, features);
 #endif
-                _logger.LogInformation($"Writing tiles...");
+                _logger.LogInformation("Writing tiles...");
 
                 // build the vector tile tree.
                 var tree = new VectorTileTree { { features, ConfigureFeature } };
@@ -311,7 +312,8 @@ namespace ANYWAYS.VectorTiles.CycleNetworks
                         }
 
                         var tile = new NetTopologySuite.IO.VectorTiles.Tiles.Tile(tileId);
-                        _logger.LogInformation($"Writing {_configuration.TargetPath}{tile.Zoom}/{tile.X}/{tile.Y}.mvt");
+                        _logger.LogInformation("Writing {TargetPath}{Zoom}/{X}/{Y}.mvt", 
+                            _configuration.TargetPath, tile.Zoom, tile.X, tile.Y);
                         yield return tree[tileId];
                     }
                 }
@@ -328,14 +330,14 @@ namespace ANYWAYS.VectorTiles.CycleNetworks
                 if (File.Exists(mvtFile)) File.Delete(mvtFile);
                 File.Copy("vectortile.spec.json", mvtFile);
 
-                _logger.LogInformation($"Tiles written.");
+                _logger.LogInformation("Tiles written");
             }
             catch (Exception e)
             {
                 // we cannot be sure things went well, best to try again.
                 this.ForceRetry();
 
-                _logger.LogCritical(e, $"Unhandled exception when writing tiles.");
+                _logger.LogCritical(e, "Unhandled exception when writing tiles");
             }
         }
 
