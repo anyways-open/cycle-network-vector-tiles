@@ -287,7 +287,7 @@ namespace ANYWAYS.VectorTiles.CycleNetworks
 
                 IEnumerable<(IFeature feature, int zoom, string layerName)> ConfigureFeature(IFeature feature)
                 {
-                    for (var z = 0; z <= 14; z++)
+                    for (var z = 6; z <= 14; z++)
                     {
                         if (feature.Geometry is LineString)
                         {
